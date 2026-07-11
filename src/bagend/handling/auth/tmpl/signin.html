@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="keywords" content="bagend, portal">
+        <meta name="description" content="Sistema de gestión">
+        <title>Iniciar Sesión - Portal</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='8' fill='%232563eb'/%3E%3Cpath d='M24 8 38 16v16L24 40 10 32V16z' fill='none' stroke='white' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M18 24l5 5 8-10' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" type="image/svg+xml">
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css"
+              rel="stylesheet"
+              type="text/css" />
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+        <style>
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            .glass-effect {
+                backdrop-filter: blur(10px);
+                background: #f8f7fc;
+            }
+            .field {
+                position: relative;
+            }
+            .field input {
+                width: 100%;
+                padding: 0.75rem 1rem 0.75rem 2.25rem;
+                border: 1.5px solid #d1d5db;
+                border-radius: 0.5rem;
+                background: #f8f7fc;
+                font-size: 1rem;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+            .field input:focus {
+                border-color: #3b82f6;
+            }
+            .field .field-icon {
+                position: absolute;
+                left: 0.75rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #3b82f6;
+                font-size: 0.85rem;
+                pointer-events: none;
+            }
+            .field label {
+                position: absolute;
+                left: 2.25rem;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 0.9rem;
+                color: #9ca3af;
+                pointer-events: none;
+                transition: all 0.2s ease;
+                background: transparent;
+                padding: 0 0.25rem;
+            }
+            .field input:focus + label,
+            .field input:not(:placeholder-shown) + label {
+                top: 0;
+                left: 1.55rem;
+                font-size: 0.72rem;
+                color: #3b82f6;
+                font-weight: 600;
+                background: #f8f7fc;
+            }
+            .domain-select {
+                padding: 0.75rem 2rem 0.75rem 0.75rem;
+                border: 1.5px solid #d1d5db;
+                border-radius: 0.5rem;
+                background: #f8f7fc;
+                font-size: 0.95rem;
+                outline: none;
+                color: #374151;
+                cursor: pointer;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 0.6rem center;
+                transition: border-color 0.2s;
+            }
+            .domain-select:focus {
+                border-color: #3b82f6;
+            }
+            .domain-select:disabled {
+                border-color: transparent;
+                background: #eff6ff;
+                color: #1d4ed8;
+                cursor: default;
+                opacity: 1;
+            }
+
+            {{! Mascot Container Styles }}
+            .mascot-wrapper {
+                position: relative;
+                width: 200px;
+                height: 200px;
+                margin: 0 auto 1.5rem;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border: 3px solid #4c1d95;
+                overflow: hidden;
+                box-shadow: 0 10px 30px rgba(76, 29, 149, 0.3);
+                opacity: 0;
+                display: none;
+                animation: mascotFadeIn 0.6s ease-out forwards;
+            }
+
+            .mascot-wrapper.visible {
+                display: block;
+                opacity: 1;
+            }
+
+            @keyframes mascotFadeIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            .mascot-svg {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            {{! Mascot Animation Classes }}
+            .eyeL, .eyeR {
+                transition: transform 0.2s ease-out;
+            }
+
+            .mouth {
+                transition: all 0.3s ease-out;
+            }
+
+            .mouthBG, .mouthMediumBG, .mouthLargeBG {
+                transition: opacity 0.3s ease-out;
+            }
+
+            .tongue circle, .tongueHighlight, .tooth {
+                transition: opacity 0.3s ease-out;
+            }
+
+            .nose, .chin, .face, .eyebrow, .earL, .earR, .hair {
+                transition: transform 0.2s ease-out;
+            }
+
+            .armL, .armR {
+                transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+            }
+
+            .nose, .chin, .face, .eyebrow, .earL, .earR, .hair {
+                transition: transform 0.2s ease-out;
+            }
+
+            .armL, .armR {
+                transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+            }
+
+            {{! Initial arm positions (down) }}
+            .armL {
+                transform: translate(-93px, 220px) rotate(105deg);
+            }
+
+            .armR {
+                transform: translate(-93px, 220px) rotate(-105deg);
+            }
+
+            {{! Password covering state - arms up }}
+            .mascot-covering .armL {
+                transform: translate(-93px, 2px) rotate(0deg) !important;
+            }
+
+            .mascot-covering .armR {
+                transform: translate(-93px, 2px) rotate(0deg) !important;
+            }
+
+            {{! Focus state helper }}
+            .field.focus-with-text label {
+                top: 0;
+                left: 1.55rem;
+                font-size: 0.72rem;
+                color: #3b82f6;
+                font-weight: 600;
+                background: #f8f7fc;
+            }
+        </style>
+    </head>
+    <body class="min-h-screen gradient-bg">
+        <div class="hero min-h-screen">
+            <div class="hero-content flex-col">
+                <div class="card md:w-96 w-full glass-effect shadow-2xl border-0" id="login-card">
+                    <div class="card-body p-8">
+                        {{! Logo }}
+                        <div class="text-center mb-2" id="logo-container">
+                            <div class="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg"
+                                 id="generic-logo"
+                                 aria-label="Portal">
+                                <svg viewBox="0 0 48 48"
+                                     class="h-8 w-8 text-white"
+                                     fill="none"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     aria-hidden="true">
+                                    <path d="M24 6 39 14.5V32L24 42 9 32V14.5L24 6Z"
+                                          stroke="currentColor"
+                                          stroke-width="4"
+                                          stroke-linejoin="round" />
+                                    <path d="M18 23.5 23 28.5 31 19.5"
+                                          stroke="currentColor"
+                                          stroke-width="4"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <form method="post">
+                            <div id="tab-ingreso">
+                                <div class="field" id="username-field">
+                                    <input type="text"
+                                           name="username"
+                                           id="username"
+                                           placeholder=" "
+                                           value="{{ form.username.value }}"
+                                           autocapitalize="none"
+                                           autocorrect="off"
+                                           spellcheck="false"
+                                           required />
+                                    <label for="username">Usuario</label>
+                                    <i class="fa-solid fa-user field-icon"></i>
+                                </div>
+                                <div class="field mt-6" id="password-field">
+                                    <input type="password"
+                                           name="password"
+                                           id="password"
+                                           placeholder=" "
+                                           required />
+                                    <label for="password">Contraseña</label>
+                                    <i class="fa-solid fa-lock field-icon"></i>
+                                </div>
+                                <button type="submit"
+                                        class="btn btn-primary w-full mt-6 bg-gradient-to-r from-blue-600 to-purple-600 border-0 hover:from-blue-700 hover:to-purple-700 shadow-lg transform hover:scale-105 transition-all duration-200">
+                                    <i class="fa-solid fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                                </button>
+                                {{#form.errors}}
+                                    <div class="flex items-start gap-2 mt-4 text-sm text-red-600">
+                                        <i class="fa-solid fa-circle-exclamation mt-0.5 shrink-0"></i>
+                                        <div class="flex flex-col">
+                                            {{#form}}
+                                                {{#errors}}<span>{{.}}</span>{{/errors}}
+                                            {{/form}}
+                                            {{#form.non_field_errors}}<span>{{.}}</span>{{/form.non_field_errors}}
+                                        </div>
+                                    </div>
+                                {{/form.errors}}
+                            </div>
+
+                            <div id="tab-corporativo" style="display:none">
+                                <input type="hidden" name="username" id="corp-username" disabled />
+                                <select id="corp-domain" class="domain-select" style="width:100%" disabled>
+                                    {{#allowed_domains}}
+                                        <option value="{{ domain }}">@{{ domain }}</option>
+                                    {{/allowed_domains}}
+                                    {{^allowed_domains}}
+                                        <option disabled>Sin dominios</option>
+                                    {{/allowed_domains}}
+                                </select>
+                                <div class="field mt-4" id="corp-local-field">
+                                    <input type="text"
+                                           id="corp-local"
+                                           placeholder=" "
+                                           autocomplete="off"
+                                           disabled />
+                                    <label for="corp-local">Usuario</label>
+                                    <i class="fa-solid fa-user field-icon"></i>
+                                </div>
+                                <div class="mt-6" id="corp-send-wrap">
+                                    <button type="button"
+                                            id="corp-send-btn"
+                                            hx-post="#"
+                                            hx-target="#corp-otp-container"
+                                            hx-swap="innerHTML"
+                                            hx-include="#corp-username"
+                                            hx-on::before-request="prepareCorpOTP()"
+                                            hx-on::after-request="onCorpSendDone(event)"
+                                            class="btn btn-primary w-full bg-gradient-to-r from-blue-600 to-purple-600 border-0 hover:from-blue-700 hover:to-purple-700 shadow-lg transform hover:scale-105 transition-all duration-200">
+                                        <i class="fa-solid fa-paper-plane mr-2"></i>
+                                        Enviar email
+                                    </button>
+                                </div>
+                                <div id="corp-otp-container"></div>
+                            </div>
+                        </form>
+                        <div class="mt-3 px-1" style="overflow: hidden;">
+                            <a href="#"
+                               class="link link-primary hover:text-blue-700 transition-colors duration-200"
+                               style="font-size: 0.68rem; float: left;">
+                                <i class="fa-solid fa-key mr-1"></i>¿Olvidó su contraseña?
+                            </a>
+                            <button type="button" id="toggle-corp-btn" onclick="switchTab('corporativo')"
+                                    style="font-size: 0.68rem; float: right;"
+                                    class="text-gray-400 hover:text-blue-600 transition-colors duration-200">
+                                @empresa
+                            </button>
+                            <div style="clear: both;"></div>
+                        </div>
+                        <div class="text-center mt-4 pt-4 border-t border-gray-200">
+                            <p class="text-xs text-gray-500" id="copyright-text">© 2026 Portal</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <canvas id="team25-canvas" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9997;pointer-events:none;image-rendering:pixelated;"></canvas>
+        <div id="team25-caption" style="display:none;position:fixed;z-index:9999;pointer-events:none;font-family:monospace;font-size:10px;color:#fff;text-shadow:0 1px 3px #000;padding:3px 7px;line-height:1.45;">
+            <span style="font-size:11px;letter-spacing:0.12em;font-weight:bold;">Dev-Team</span>
+            <hr style="border:none;border-top:1px solid rgba(255,255,255,0.6);margin:2px 0;">
+            <div>Felipe Chávarri</div>
+            <div>José Márquez</div>
+            <div>Josh Bravo</div>
+            <div>Cristhian Gonzales</div>
+        </div>
+        <script>
+        (function() {
+            const TEAM_IMG_URL = '/static/team25.png';
+            let gl, program, posLoc, texLoc, timeLoc, resLoc, posUnifLoc, animFrame;
+            let active = false;
+            let img = null;
+            let imgLoaded = false;
+            let bx = 0.1, by = 0.2;
+            let vx = 0.00004, vy = 0.000029;
+            let lastTs = null;
+
+            const VS = `attribute vec2 a_pos;void main(){gl_Position=vec4(a_pos,0.0,1.0);}`;
+
+            const FS = `
+                precision mediump float;
+                uniform sampler2D u_tex;
+                uniform float u_time;
+                uniform vec2 u_res;
+                uniform vec2 u_imgPos;
+                uniform vec2 u_imgSize;
+                void main() {
+                    vec2 uv = gl_FragCoord.xy / u_res;
+                    uv.y = 1.0 - uv.y;
+                    float x0 = u_imgPos.x;
+                    float y0 = u_imgPos.y;
+                    float x1 = x0 + u_imgSize.x;
+                    float y1 = y0 + u_imgSize.y;
+                    if (uv.x < x0 || uv.x > x1 || uv.y < y0 || uv.y > y1) discard;
+                    vec2 local = vec2((uv.x - x0) / u_imgSize.x, (uv.y - y0) / u_imgSize.y);
+                    float genie   = 0.12 + 0.14 * (0.5 + 0.5 * sin(u_time * 0.18));
+                    float squeeze = genie * pow(1.0 - local.y, 2.0);
+                    float wave    = 0.034 * sin(u_time * 0.30 + local.y * 4.5);
+                    float remapX  = squeeze + (1.0 - 2.0 * squeeze) * local.x + wave;
+                    float remapY  = local.y + 0.022 * sin(u_time * 0.22 + local.x * 3.5);
+                    if (remapX < 0.0 || remapX > 1.0 || remapY < 0.0 || remapY > 1.0) discard;
+                    vec4 texColor = texture2D(u_tex, vec2(remapX, remapY));
+                    float captionH = 0.38;
+                    if (local.y > (1.0 - captionH)) {
+                        float fade = (local.y - (1.0 - captionH)) / captionH;
+                        texColor = mix(texColor, vec4(0.0, 0.0, 0.0, 0.72), fade * 0.85);
+                    }
+                    gl_FragColor = texColor;
+                }
+            `;
+
+            function makeShader(type, src) {
+                const s = gl.createShader(type);
+                gl.shaderSource(s, src);
+                gl.compileShader(s);
+                return s;
+            }
+
+            function initWebGL() {
+                const canvas = document.getElementById('team25-canvas');
+                gl = canvas.getContext('webgl', {alpha: true, premultipliedAlpha: false});
+                if (!gl) return false;
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                program = gl.createProgram();
+                gl.attachShader(program, makeShader(gl.VERTEX_SHADER, VS));
+                gl.attachShader(program, makeShader(gl.FRAGMENT_SHADER, FS));
+                gl.linkProgram(program);
+                gl.useProgram(program);
+                const buf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+                posLoc = gl.getAttribLocation(program, 'a_pos');
+                gl.enableVertexAttribArray(posLoc);
+                gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+                texLoc     = gl.getUniformLocation(program, 'u_tex');
+                timeLoc    = gl.getUniformLocation(program, 'u_time');
+                resLoc     = gl.getUniformLocation(program, 'u_res');
+                posUnifLoc = gl.getUniformLocation(program, 'u_imgPos');
+                const tex = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, tex);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                gl.uniform1i(texLoc, 0);
+                const imgAspect = img.naturalWidth / img.naturalHeight;
+                const imgH = 0.40;
+                const imgW = imgH * imgAspect / (canvas.offsetWidth / canvas.offsetHeight);
+                gl.uniform2f(gl.getUniformLocation(program, 'u_imgSize'), imgW, imgH);
+                return true;
+            }
+
+            function render(ts) {
+                if (!active) return;
+                if (lastTs === null) lastTs = ts;
+                const dt = Math.min(ts - lastTs, 50);
+                lastTs = ts;
+                const canvas = document.getElementById('team25-canvas');
+                canvas.width  = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                const imgAspect = img.naturalWidth / img.naturalHeight;
+                const imgH = 0.40;
+                const imgW = imgH * imgAspect / (canvas.width / canvas.height);
+                bx += vx * dt;
+                by += vy * dt;
+                const jitter = 0.000012;
+                if (bx < 0)          { bx = 0;        vx =  Math.abs(vx); vy += (Math.random()-0.5)*jitter; }
+                if (bx + imgW > 1.0) { bx = 1.0-imgW; vx = -Math.abs(vx); vy += (Math.random()-0.5)*jitter; }
+                if (by < 0)          { by = 0;        vy =  Math.abs(vy); vx += (Math.random()-0.5)*jitter; }
+                if (by + imgH > 1.0) { by = 1.0-imgH; vy = -Math.abs(vy); vx += (Math.random()-0.5)*jitter; }
+                const speed = Math.sqrt(vx*vx+vy*vy);
+                const target = 0.000049;
+                if (speed > 0) { vx = vx/speed*target; vy = vy/speed*target; }
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.clearColor(0, 0, 0, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.useProgram(program);
+                gl.uniform1f(timeLoc, ts * 0.001);
+                gl.uniform2f(resLoc, canvas.width, canvas.height);
+                gl.uniform2f(posUnifLoc, bx, by);
+                gl.uniform2f(gl.getUniformLocation(program, 'u_imgSize'), imgW, imgH);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+                const cap = document.getElementById('team25-caption');
+                const cx = bx * canvas.width;
+                const cy = (by + imgH) * canvas.height;
+                cap.style.left = Math.round(cx + 5) + 'px';
+                cap.style.top  = Math.round(cy - imgH * canvas.height * 0.36) + 'px';
+
+                animFrame = requestAnimationFrame(render);
+            }
+
+            function loadImageAndStart() {
+                if (imgLoaded) { toggleEgg(); return; }
+                img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = function() { imgLoaded = true; toggleEgg(); };
+                img.src = TEAM_IMG_URL;
+            }
+
+            function toggleEgg() {
+                if (active) {
+                    active = false;
+                    lastTs = null;
+                    cancelAnimationFrame(animFrame);
+                    document.getElementById('team25-canvas').style.display = 'none';
+                    document.getElementById('team25-caption').style.display = 'none';
+                    return;
+                }
+                const canvas = document.getElementById('team25-canvas');
+                canvas.style.display = 'block';
+                document.getElementById('team25-caption').style.display = 'block';
+                active = true;
+                if (!gl) { if (!initWebGL()) { active = false; return; } }
+                animFrame = requestAnimationFrame(render);
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && (e.key === '1' || e.keyCode === 49)) {
+                    e.preventDefault();
+                    loadImageAndStart();
+                }
+            });
+
+            (function() {
+                const copyrightText = document.getElementById('copyright-text');
+                const usernameInput = document.getElementById('username');
+                let tapCount = 0;
+                let tapTimer = null;
+                const TAP_WINDOW = 1800;
+                function resetTaps() { tapCount = 0; }
+                if (copyrightText) {
+                    copyrightText.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        tapCount++;
+                        clearTimeout(tapTimer);
+                        tapTimer = setTimeout(resetTaps, TAP_WINDOW);
+                    });
+                }
+                if (usernameInput) {
+                    usernameInput.addEventListener('click', function() {
+                        if (tapCount >= 2) {
+                            resetTaps();
+                            clearTimeout(tapTimer);
+                            loadImageAndStart();
+                        }
+                    });
+                }
+            })();
+        })();
+        </script>
+
+        <script defer>
+            function switchTab(tab) {
+                const isCorp = tab === 'corporativo';
+                document.getElementById('tab-ingreso').style.display = isCorp ? 'none' : '';
+                document.getElementById('tab-corporativo').style.display = isCorp ? '' : 'none';
+                document.querySelectorAll('#tab-ingreso input, #tab-ingreso button[type="submit"]')
+                    .forEach(el => el.disabled = isCorp);
+                document.querySelectorAll('#corp-username, #corp-domain, #corp-local')
+                    .forEach(el => el.disabled = !isCorp);
+                const toggleBtn = document.getElementById('toggle-corp-btn');
+                if (isCorp) {
+                    toggleBtn.textContent = '← ingreso';
+                    toggleBtn.onclick = () => switchTab('ingreso');
+                } else {
+                    toggleBtn.textContent = '@empresa';
+                    toggleBtn.onclick = () => switchTab('corporativo');
+                }
+            }
+
+            function prepareCorpOTP() {
+                const local = document.getElementById('corp-local').value.trim();
+                const domain = document.getElementById('corp-domain').value;
+                document.getElementById('corp-username').value = local + '@' + domain;
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                function focusOnFirstKey(e) {
+                    const tag = document.activeElement.tagName;
+                    if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(tag)) {
+                        document.getElementById('username').focus();
+                    }
+                    document.removeEventListener('keydown', focusOnFirstKey);
+                }
+                document.addEventListener('keydown', focusOnFirstKey);
+
+                document.getElementById('corp-local').addEventListener('input', prepareCorpOTP);
+                document.getElementById('corp-domain').addEventListener('change', prepareCorpOTP);
+            });
+
+            const _CORP_BTN = 'btn btn-primary flex-1 bg-gradient-to-r from-blue-600 to-purple-600'
+                + ' border-0 hover:from-blue-700 hover:to-purple-700 shadow-lg transform hover:scale-105 transition-all duration-200';
+            const _CORP_BACK = 'btn btn-ghost btn-square border border-gray-300 text-gray-500 hover:border-gray-400';
+
+            function onCorpSendDone(event) {
+                if (!event.detail.successful) return;
+                document.getElementById('corp-local').readOnly = true;
+                document.getElementById('corp-domain').disabled = true;
+                const wrap = document.getElementById('corp-send-wrap');
+                wrap.className = 'flex gap-2 mt-6';
+                wrap.innerHTML =
+                    `<button type="button" onclick="goBackCorp()" class="${_CORP_BACK}"><i class="fa-solid fa-arrow-left"></i></button>`
+                    + `<button type="submit" class="${_CORP_BTN}"><i class="fa-solid fa-sign-in-alt mr-2"></i>Iniciar Sesión</button>`;
+                htmx.process(document.getElementById('corp-otp-container'));
+            }
+
+            function goBackCorp() {
+                document.getElementById('corp-local').readOnly = false;
+                document.getElementById('corp-domain').disabled = false;
+                document.getElementById('corp-otp-container').innerHTML = '';
+                const wrap = document.getElementById('corp-send-wrap');
+                wrap.className = 'mt-6';
+                wrap.innerHTML =
+                    `<button type="button" id="corp-send-btn"`
+                    + ` hx-post="#"`
+                    + ` hx-target="#corp-otp-container"`
+                    + ` hx-swap="innerHTML"`
+                    + ` hx-include="#corp-username"`
+                    + ` hx-on::before-request="prepareCorpOTP()"`
+                    + ` hx-on::after-request="onCorpSendDone(event)"`
+                    + ` class="${_CORP_BTN.replace('flex-1', 'w-full')}">`
+                    + `<i class="fa-solid fa-paper-plane mr-2"></i>Enviar email`
+                    + `</button>`;
+                htmx.process(wrap);
+            }
+
+            const MASCOT_SVG = `<svg class="mascot-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <circle id="armMaskPath" cx="100" cy="100" r="100"/>
+                    <clipPath id="armMask">
+                        <use href="#armMaskPath" overflow="visible"/>
+                    </clipPath>
+                </defs>
+                <circle cx="100" cy="100" r="100" fill="#818cf8"/>
+                <g class="body">
+                    <path fill="#f8f7fc" d="M193.3,135.9c-5.8-8.4-15.5-13.9-26.5-13.9H151V72c0-27.6-22.4-50-50-50S51,44.4,51,72v50H32.1 c-10.6,0-20,5.1-25.8,13l0,78h187L193.3,135.9z"/>
+                    <path fill="none" stroke="#4c1d95" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M193.3,135.9 c-5.8-8.4-15.5-13.9-26.5-13.9H151V72c0-27.6-22.4-50-50-50S51,44.4,51,72v50H32.1c-10.6,0-20,5.1-25.8,13"/>
+                    <path fill="#e0e7ff" d="M100,156.4c-22.9,0-43,11.1-54.1,27.7c15.6,10,34.2,15.9,54.1,15.9s38.5-5.8,54.1-15.9 C143,167.5,122.9,156.4,100,156.4z"/>
+                </g>
+                <g class="earL">
+                    <g class="outerEar" fill="#e0e7ff" stroke="#4c1d95" stroke-width="2.5">
+                        <circle cx="47" cy="83" r="11.5"/>
+                        <path d="M46.3 78.9c-2.3 0-4.1 1.9-4.1 4.1 0 2.3 1.9 4.1 4.1 4.1" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                    <g class="earHair">
+                        <rect x="51" y="64" fill="#f8f7fc" width="15" height="35"/>
+                        <path d="M53.4 62.8C48.5 67.4 45 72.2 42.8 77c3.4-.1 6.8-.1 10.1.1-4 3.7-6.8 7.6-8.2 11.6 2.1 0 4.2 0 6.3.2-2.6 4.1-3.8 8.3-3.7 12.5 1.2-.7 3.4-1.4 5.2-1.9" fill="#f8f7fc" stroke="#4c1d95" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                </g>
+                <g class="earR">
+                    <g class="outerEar" fill="#e0e7ff" stroke="#4c1d95" stroke-width="2.5">
+                        <circle cx="155" cy="83" r="11.5"/>
+                        <path d="M155.7 78.9c2.3 0 4.1 1.9 4.1 4.1 0 2.3-1.9 4.1-4.1 4.1" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                    <g class="earHair">
+                        <rect x="131" y="64" fill="#f8f7fc" width="20" height="35"/>
+                        <path d="M148.6 62.8c4.9 4.6 8.4 9.4 10.6 14.2-3.4-.1-6.8-.1-10.1.1 4 3.7 6.8 7.6 8.2 11.6-2.1 0-4.2 0-6.3.2 2.6 4.1 3.8 8.3 3.7 12.5-1.2-.7-3.4-1.4-5.2-1.9" fill="#f8f7fc" stroke="#4c1d95" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                </g>
+                <path class="chin" d="M84.1 121.6c2.7 2.9 6.1 5.4 9.8 7.5l.9-4.5c2.9 2.5 6.3 4.8 10.2 6.5 0-1.9-.1-3.9-.2-5.8 3 1.2 6.2 2 9.7 2.5-.3-2.1-.7-4.1-1.2-6.1" fill="none" stroke="#4c1d95" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path class="face" fill="#e0e7ff" d="M134.5,46v35.5c0,21.815-15.446,39.5-34.5,39.5s-34.5-17.685-34.5-39.5V46"/>
+                <path class="hair" fill="#f8f7fc" stroke="#4c1d95" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M81.457,27.929 c1.755-4.084,5.51-8.262,11.253-11.77c0.979,2.565,1.883,5.14,2.712,7.723c3.162-4.265,8.626-8.27,16.272-11.235 c-0.737,3.293-1.588,6.573-2.554,9.837c4.857-2.116,11.049-3.64,18.428-4.156c-2.403,3.23-5.021,6.391-7.852,9.474"/>
+                <g class="eyebrow">
+                    <path fill="#f8f7fc" d="M138.142,55.064c-4.93,1.259-9.874,2.118-14.787,2.599c-0.336,3.341-0.776,6.689-1.322,10.037 c-4.569-1.465-8.909-3.222-12.996-5.226c-0.98,3.075-2.07,6.137-3.267,9.179c-5.514-3.067-10.559-6.545-15.097-10.329 c-1.806,2.889-3.745,5.73-5.816,8.515c-7.916-4.124-15.053-9.114-21.296-14.738l1.107-11.768h73.475V55.064z"/>
+                    <path fill="#f8f7fc" stroke="#4c1d95" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M63.56,55.102 c6.243,5.624,13.38,10.614,21.296,14.738c2.071-2.785,4.01-5.626,5.816-8.515c4.537,3.785,9.583,7.263,15.097,10.329 c1.197-3.043,2.287-6.104,3.267-9.179c4.087,2.004,8.427,3.761,12.996,5.226c0.545-3.348,0.986-6.696,1.322-10.037 c4.913-0.481,9.857-1.34,14.787-2.599"/>
+                </g>
+                <g class="eyeL" id="eyeL">
+                    <circle cx="85.5" cy="78.5" r="3.5" fill="#4c1d95"/>
+                    <circle cx="84" cy="76" r="1" fill="#fff"/>
+                </g>
+                <g class="eyeR" id="eyeR">
+                    <circle cx="114.5" cy="78.5" r="3.5" fill="#4c1d95"/>
+                    <circle cx="113" cy="76" r="1" fill="#fff"/>
+                </g>
+                <g class="mouth" id="mouth">
+                    <path class="mouthBG" fill="#6366f1" d="M100.2,101c-0.4,0-1.4,0-1.8,0c-2.7-0.3-5.3-1.1-8-2.5c-0.7-0.3-0.9-1.2-0.6-1.8 c0.2-0.5,0.7-0.7,1.2-0.7c0.2,0,0.5,0.1,0.6,0.2c3,1.5,5.8,2.3,8.6,2.3s5.7-0.7,8.6-2.3c0.2-0.1,0.4-0.2,0.6-0.2 c0.5,0,1,0.3,1.2,0.7c0.4,0.7,0.1,1.5-0.6,1.9c-2.6,1.4-5.3,2.2-7.9,2.5C101.7,101,100.5,101,100.2,101z"/>
+                    <path class="mouthMediumBG" fill="#6366f1" d="M95,104.2c-4.5,0-8.2-3.7-8.2-8.2v-2c0-1.2,1-2.2,2.2-2.2h22c1.2,0,2.2,1,2.2,2.2v2 c0,4.5-3.7,8.2-8.2,8.2H95z" opacity="0"/>
+                    <path class="mouthLargeBG" fill="#6366f1" stroke="#4c1d95" stroke-linejoin="round" stroke-width="2.5" d="M100 110.2c-9 0-16.2-7.3-16.2-16.2 0-2.3 1.9-4.2 4.2-4.2h24c2.3 0 4.2 1.9 4.2 4.2 0 9-7.2 16.2-16.2 16.2z" opacity="0"/>
+                    <defs>
+                        <path id="tongueClipPath" d="M95,104.2c-4.5,0-8.2-3.7-8.2-8.2v-2c0-1.2,1-2.2,2.2-2.2h22c1.2,0,2.2,1,2.2,2.2v2 c0,4.5-3.7,8.2-8.2,8.2H95z"/>
+                    </defs>
+                    <clipPath id="tongueClip">
+                        <use href="#tongueClipPath" overflow="visible"/>
+                    </clipPath>
+                    <g clip-path="url(#tongueClip)">
+                        <g class="tongue" id="tongueGroup">
+                            <circle cx="100" cy="107" r="8" fill="#f472b6" opacity="0"/>
+                            <ellipse class="tongueHighlight" cx="100" cy="100.5" rx="3" ry="1.5" opacity="0" fill="#fff"/>
+                        </g>
+                    </g>
+                    <path class="tooth" id="tooth" d="M106,97h-4c-1.1,0-2-0.9-2-2v-2h8v2C108,96.1,107.1,97,106,97z" fill="#f8f7fc" opacity="0"/>
+                    <path class="mouthOutline" fill="none" stroke="#4c1d95" stroke-width="2.5" stroke-linejoin="round" d="M100.2,101c-0.4,0-1.4,0-1.8,0c-2.7-0.3-5.3-1.1-8-2.5c-0.7-0.3-0.9-1.2-0.6-1.8 c0.2-0.5,0.7-0.7,1.2-0.7c0.2,0,0.5,0.1,0.6,0.2c3,1.5,5.8,2.3,8.6,2.3s5.7-0.7,8.6-2.3c0.2-0.1,0.4-0.2,0.6-0.2 c0.5,0,1,0.3,1.2,0.7c0.4,0.7,0.1,1.5-0.6,1.9c-2.6,1.4-5.3,2.2-7.9,2.5C101.7,101,100.5,101,100.2,101z"/>
+                </g>
+                <path class="nose" id="nose" d="M97.7 79.9h4.7c1.9 0 3 2.2 1.9 3.7l-2.3 3.3c-.9 1.3-2.9 1.3-3.8 0l-2.3-3.3c-1.3-1.6-.2-3.7 1.8-3.7z" fill="#4c1d95"/>
+                <g class="arms" clip-path="url(#armMask)">
+                    <g class="armL" id="armL">
+                        <path fill="#e0e7ff" stroke="#4c1d95" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2.5" d="M121.3 97.4L111 58.7l38.8-10.4 20 36.1z"/>
+                        <path fill="#e0e7ff" stroke="#4c1d95" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2.5" d="M134.4 52.5l19.3-5.2c2.7-.7 5.4.9 6.1 3.5.7 2.7-.9 5.4-3.5 6.1L146 59.7M160.8 76.5l19.4-5.2c2.7-.7 5.4.9 6.1 3.5.7 2.7-.9 5.4-3.5 6.1l-18.3 4.9M158.3 66.8l23.1-6.2c2.7-.7 5.4.9 6.1 3.5.7 2.7-.9 5.4-3.5 6.1l-23.1 6.2M150.9 58.4l26-7c2.7-.7 5.4.9 6.1 3.5.7 2.7-.9 5.4-3.5 6.1l-21.3 5.7"/>
+                        <path fill="#818cf8" d="M178.8 74.7l2.2-.6c1.1-.3 2.2.3 2.4 1.4.3 1.1-.3 2.2-1.4 2.4l-2.2.6-1-3.8zM180.1 64l2.2-.6c1.1-.3 2.2.3 2.4 1.4.3 1.1-.3 2.2-1.4 2.4l-2.2.6-1-3.8zM175.5 54.9l2.2-.6c1.1-.3 2.2.3 2.4 1.4.3 1.1-.3 2.2-1.4 2.4l-2.2.6-1-3.8zM152.1 49.4l2.2-.6c1.1-.3 2.2.3 2.4 1.4.3 1.1-.3 2.2-1.4 2.4l-2.2.6-1-3.8z"/>
+                        <path fill="#f8f7fc" stroke="#4c1d95" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M123.5 96.8c-41.4 14.9-84.1 30.7-108.2 35.5L1.2 80c33.5-9.9 71.9-16.5 111.9-21.8"/>
+                        <path fill="#f8f7fc" stroke="#4c1d95" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M108.5 59.4c7.7-5.3 14.3-8.4 22.8-13.2-2.4 5.3-4.7 10.3-6.7 15.1 4.3.3 8.4.7 12.3 1.3-4.2 5-8.1 9.6-11.5 13.9 3.1 1.1 6 2.4 8.7 3.8-1.4 2.9-2.7 5.8-3.9 8.5 2.5 3.5 4.6 7.2 6.3 11-4.9-.8-9-.7-16.2-2.7M94.5 102.8c-.6 4-3.8 8.9-9.4 14.7-2.6-1.8-5-3.7-7.2-5.7-2.5 4.1-6.6 8.8-12.2 14-1.9-2.2-3.4-4.5-4.5-6.9-4.4 3.3-9.5 6.9-15.4 10.8-.2-3.4.1-7.1 1.1-10.9M97.5 62.9c-1.7-2.4-5.9-4.1-12.4-5.2-.9 2.2-1.8 4.3-2.5 6.5-3.8-1.8-9.4-3.1-17-3.8.5 2.3 1.2 4.5 1.9 6.8-5-.6-11.2-.9-18.4-1 2 2.9.9 3.5 3.9 6.2"/>
+                    </g>
+                    <g class="armR" id="armR">
+                        <path fill="#e0e7ff" stroke="#4c1d95" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2.5" d="M265.4 97.3l10.4-38.6-38.9-10.5-20 36.1z"/>
+                        <path fill="#e0e7ff" stroke="#4c1d95" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2.5" d="M252.4 52.4L233 47.2c-2.7-.7-5.4.9-6.1 3.5-.7 2.7.9 5.4 3.5 6.1l10.3 2.8M226 76.4l-19.4-5.2c-2.7-.7-5.4.9-6.1 3.5-.7 2.7.9 5.4 3.5 6.1l18.3 4.9M228.4 66.7l-23.1-6.2c-2.7-.7-5.4.9-6.1 3.5-.7 2.7.9 5.4 3.5 6.1l23.1 6.2M235.8 58.3l-26-7c-2.7-.7-5.4.9-6.1 3.5-.7 2.7.9 5.4 3.5 6.1l21.3 5.7"/>
+                        <path fill="#818cf8" d="M207.9 74.7l-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8zM206.7 64l-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8zM211.2 54.8l-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8zM234.6 49.4l-2.2-.6c-1.1-.3-2.2.3-2.4 1.4-.3 1.1.3 2.2 1.4 2.4l2.2.6 1-3.8z"/>
+                        <path fill="#f8f7fc" stroke="#4c1d95" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M263.3 96.7c41.4 14.9 84.1 30.7 108.2 35.5l14-52.3C352 70 313.6 63.5 273.6 58.1"/>
+                        <path fill="#f8f7fc" stroke="#4c1d95" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M278.2 59.3l-18.6-10 2.5 11.9-10.7 6.5 9.9 8.7-13.9 6.4 9.1 5.9-13.2 9.2 23.1-.9M284.5 100.1c-.4 4 1.8 8.9 6.7 14.8 3.5-1.8 6.7-3.6 9.7-5.5 1.8 4.2 5.1 8.9 10.1 14.1 2.7-2.1 5.1-4.4 7.1-6.8 4.1 3.4 9 7 14.7 11 1.2-3.4 1.8-7 1.7-10.9M314 66.7s5.4-5.7 12.6-7.4c1.7 2.9 3.3 5.7 4.9 8.6 3.8-2.5 9.8-4.4 18.2-5.7.1 3.1.1 6.1 0 9.2 5.5-1 12.5-1.6 20.8-1.9-1.4 3.9-2.5 8.4-2.5 8.4"/>
+                    </g>
+                </g>
+            </svg>`;
+
+            function insertMascot() {
+                let mascotWrapper = document.getElementById('mascot-wrapper');
+                if (!mascotWrapper) {
+                    mascotWrapper = document.createElement('div');
+                    mascotWrapper.id = 'mascot-wrapper';
+                    mascotWrapper.className = 'mascot-wrapper';
+                    const logoContainer = document.getElementById('logo-container');
+                    if (logoContainer && logoContainer.parentNode) {
+                        logoContainer.parentNode.insertBefore(mascotWrapper, logoContainer.nextSibling);
+                    }
+                }
+                return mascotWrapper;
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && (e.key === '9' || e.keyCode === 57)) {
+                    e.preventDefault();
+                    const mascotWrapper = insertMascot();
+                    if (!mascotWrapper.classList.contains('visible')) {
+                        mascotWrapper.classList.add('visible');
+                        if (!mascotWrapper.innerHTML) {
+                            mascotWrapper.innerHTML = MASCOT_SVG;
+                            initMascotAnimation();
+                        }
+                    } else {
+                        mascotWrapper.classList.remove('visible');
+                    }
+                }
+            });
+
+            function initMascotAnimation() {
+                const mascotWrapper = document.getElementById('mascot-wrapper');
+                if (!mascotWrapper) return;
+
+                const usernameInput = document.getElementById('username');
+                const passwordInput = document.getElementById('password');
+                const corpLocalInput = document.getElementById('corp-local');
+
+                const eyeL = document.getElementById('eyeL');
+                const eyeR = document.getElementById('eyeR');
+                const nose = document.getElementById('nose');
+                const armL = document.getElementById('armL');
+                const armR = document.getElementById('armR');
+
+                const eyeMaxHorizD = 4;
+                const eyeMaxVertD = 3;
+
+                const mouthBG = document.querySelector('.mouthBG');
+                const mouthMediumBG = document.querySelector('.mouthMediumBG');
+                const mouthLargeBG = document.querySelector('.mouthLargeBG');
+                const tongueGroup = document.getElementById('tongueGroup');
+                const tooth = document.getElementById('tooth');
+
+                let mouthStatus = 'small';
+
+                {{! Check if elements exist }}
+                if (!eyeL || !eyeR || !armL || !armR) {
+                    return;
+                }
+
+                function updateEyesFromMouse(mouseX, mouseY) {
+                    const mascotRect = mascotWrapper.getBoundingClientRect();
+                    const mascotCenterX = mascotRect.left + mascotRect.width / 2;
+                    const mascotCenterY = mascotRect.top + mascotRect.height / 2;
+
+                    const deltaX = mouseX - mascotCenterX;
+                    const deltaY = mouseY - mascotCenterY;
+
+                    const maxDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                    const scale = Math.min(1, maxDistance / 150);
+
+                    const angle = Math.atan2(deltaY, deltaX);
+
+                    const eyeX = Math.cos(angle) * eyeMaxHorizD * scale;
+                    const eyeY = Math.sin(angle) * eyeMaxVertD * scale;
+
+                    eyeL.style.transform = `translate(${eyeX}px, ${eyeY}px)`;
+                    eyeR.style.transform = `translate(${eyeX}px, ${eyeY}px)`;
+
+                    if (nose) {
+                        nose.style.transform = `translate(${eyeX * 0.4}px, ${eyeY * 0.4}px)`;
+                    }
+                }
+
+                function resetEyes() {
+                    eyeL.style.transform = 'translate(0, 0)';
+                    eyeR.style.transform = 'translate(0, 0)';
+                    if (nose) nose.style.transform = 'translate(0, 0)';
+                }
+
+                function setMouth(status) {
+                    mouthStatus = status;
+
+                    if (mouthBG) mouthBG.style.opacity = '0';
+                    if (mouthMediumBG) mouthMediumBG.style.opacity = '0';
+                    if (mouthLargeBG) mouthLargeBG.style.opacity = '0';
+
+                    if (status === 'small') {
+                        if (mouthBG) mouthBG.style.opacity = '1';
+                        if (tongueGroup) {
+                            tongueGroup.querySelector('circle').style.opacity = '0';
+                            tongueGroup.querySelector('.tongueHighlight').style.opacity = '0';
+                        }
+                        if (tooth) tooth.style.opacity = '0';
+                    } else if (status === 'medium') {
+                        if (mouthMediumBG) mouthMediumBG.style.opacity = '1';
+                        if (tongueGroup) {
+                            tongueGroup.querySelector('circle').style.opacity = '1';
+                            tongueGroup.querySelector('.tongueHighlight').style.opacity = '0.3';
+                        }
+                        if (tooth) tooth.style.opacity = '1';
+                    } else if (status === 'large') {
+                        if (mouthLargeBG) mouthLargeBG.style.opacity = '1';
+                        if (tongueGroup) {
+                            tongueGroup.querySelector('circle').style.opacity = '1';
+                            tongueGroup.querySelector('.tongueHighlight').style.opacity = '0.3';
+                        }
+                        if (tooth) tooth.style.opacity = '1';
+                    }
+                }
+
+                function coverEyes() {
+                    mascotWrapper.classList.add('mascot-covering');
+                }
+
+                function uncoverEyes() {
+                    mascotWrapper.classList.remove('mascot-covering');
+                }
+
+                {{! Initialize mouth }}
+                setMouth('small');
+
+                {{! Username field events }}
+                if (usernameInput) {
+                    usernameInput.addEventListener('mousemove', function(e) {
+                        if (!mascotWrapper.classList.contains('mascot-covering')) {
+                            updateEyesFromMouse(e.clientX, e.clientY);
+                        }
+                    });
+
+                    usernameInput.addEventListener('mouseleave', function() {
+                        resetEyes();
+                    });
+
+                    usernameInput.addEventListener('focus', function() {
+                        uncoverEyes();
+                        this.parentElement.classList.add('focus-with-text');
+                    });
+
+                    usernameInput.addEventListener('blur', function() {
+                        if (this.value === '') {
+                            this.parentElement.classList.remove('focus-with-text');
+                        }
+                        resetEyes();
+                        setMouth('small');
+                    });
+
+                    usernameInput.addEventListener('input', function() {
+                        if (!mascotWrapper.classList.contains('mascot-covering')) {
+                            const value = this.value;
+
+                            if (value.length === 0) {
+                                setMouth('small');
+                            } else if (value.includes('@')) {
+                                setMouth('large');
+                            } else {
+                                setMouth('medium');
+                            }
+
+                            const rect = this.getBoundingClientRect();
+                            const textWidth = this.value.length * 7;
+                            const eyeX = Math.min(eyeMaxHorizD, Math.max(-eyeMaxHorizD, (textWidth - rect.width/2) / 15));
+                            eyeL.style.transform = `translate(${eyeX}px, 0)`;
+                            eyeR.style.transform = `translate(${eyeX}px, 0)`;
+                        }
+                    });
+                }
+
+                {{! Password field events }}
+                if (passwordInput) {
+                    passwordInput.addEventListener('focus', function() {
+                        coverEyes();
+                        this.parentElement.classList.add('focus-with-text');
+                    });
+
+                    passwordInput.addEventListener('blur', function() {
+                        if (this.value === '') {
+                            this.parentElement.classList.remove('focus-with-text');
+                        }
+                        uncoverEyes();
+                    });
+                }
+
+                {{! Corporate username field events }}
+                if (corpLocalInput) {
+                    corpLocalInput.addEventListener('mousemove', function(e) {
+                        if (!mascotWrapper.classList.contains('mascot-covering')) {
+                            updateEyesFromMouse(e.clientX, e.clientY);
+                        }
+                    });
+
+                    corpLocalInput.addEventListener('mouseleave', function() {
+                        resetEyes();
+                    });
+
+                    corpLocalInput.addEventListener('focus', function() {
+                        uncoverEyes();
+                        this.parentElement.classList.add('focus-with-text');
+                    });
+
+                    corpLocalInput.addEventListener('blur', function() {
+                        if (this.value === '') {
+                            this.parentElement.classList.remove('focus-with-text');
+                        }
+                        resetEyes();
+                        setMouth('small');
+                    });
+
+                    corpLocalInput.addEventListener('input', function() {
+                        if (!mascotWrapper.classList.contains('mascot-covering')) {
+                            const value = this.value;
+
+                            if (value.length === 0) {
+                                setMouth('small');
+                            } else {
+                                setMouth('medium');
+                            }
+
+                            const rect = this.getBoundingClientRect();
+                            const textWidth = this.value.length * 7;
+                            const eyeX = Math.min(eyeMaxHorizD, Math.max(-eyeMaxHorizD, (textWidth - rect.width/2) / 15));
+                            eyeL.style.transform = `translate(${eyeX}px, 0)`;
+                            eyeR.style.transform = `translate(${eyeX}px, 0)`;
+                        }
+                    });
+                }
+
+                {{! Handle corporate OTP input if it appears }}
+                document.addEventListener('focusin', function(e) {
+                    if (e.target.type === 'password' || e.target.id === 'corp-otp') {
+                        coverEyes();
+                    }
+                });
+
+                document.addEventListener('focusout', function(e) {
+                    if (e.target.type === 'password' || e.target.id === 'corp-otp') {
+                        uncoverEyes();
+                    }
+                });
+            }
+
+            (function() {
+                let mascotInitialized = false;
+                let mascotVisible = false;
+
+                const copyrightText = document.getElementById('copyright-text');
+                const logoContainer = document.getElementById('logo-container');
+                let sequenceStep = 0;
+                let sequenceStartTime = 0;
+                const sequenceWindow = 2000;
+
+                function handleCopyrightTap(e) {
+                    e.stopPropagation();
+                    sequenceStep = 1;
+                    sequenceStartTime = Date.now();
+                    setTimeout(function() {
+                        if (sequenceStep === 1) {
+                            sequenceStep = 0;
+                        }
+                    }, sequenceWindow);
+                }
+
+                function handleLogoTap(e) {
+                    if (sequenceStep === 1) {
+                        const timeDiff = Date.now() - sequenceStartTime;
+                        if (timeDiff <= sequenceWindow) {
+                            sequenceStep = 0;
+                            toggleMascot();
+                        }
+                    }
+                }
+
+                if (copyrightText) {
+                    copyrightText.addEventListener('click', handleCopyrightTap);
+                    copyrightText.style.userSelect = 'none';
+                    copyrightText.style.webkitUserSelect = 'none';
+                    copyrightText.style.cursor = 'default';
+                }
+
+                if (logoContainer) {
+                    logoContainer.addEventListener('click', handleLogoTap);
+                }
+
+                function toggleMascot() {
+                    const mascotWrapper = insertMascot();
+                    if (!mascotWrapper) return;
+
+                    if (!mascotVisible) {
+                        {{! Insert SVG on first show }}
+                        if (!mascotInitialized) {
+                            mascotWrapper.innerHTML = MASCOT_SVG;
+                            mascotInitialized = true;
+                        }
+
+                        {{! Show mascot }}
+                        mascotWrapper.classList.add('visible');
+                        mascotVisible = true;
+
+                        {{! Initialize animation }}
+                        initMascotAnimation();
+                    } else {
+                        {{! Hide mascot }}
+                        mascotWrapper.classList.remove('visible');
+                        mascotVisible = false;
+                    }
+                }
+            })();
+        </script>
+    </body>
+</html>
