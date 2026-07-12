@@ -16,6 +16,8 @@ Server* server_create(void);
 void server_destroy(Server*);
 void server_get(Server*, const char* pattern, Handler handler);
 void server_post(Server*, const char* pattern, Handler handler);
+void server_put(Server*, const char* pattern, Handler handler);
+void server_delete(Server*, const char* pattern, Handler handler);
 void server_listen(Server*, const char* host, int port);
 
 void response_set_redirect(Response*, const char* url);

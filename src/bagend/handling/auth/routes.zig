@@ -4,10 +4,12 @@ const httplib = @import("httplib");
 const mustache = @import("mustache");
 
 const signInTmpl = @embedFile("tmpl/signin.html");
+const dashboardTmpl = @embedFile("tmpl/dashboard.html");
 
-pub fn initRoutes(server: httplib.Server) httplib.Server {
-    return server
+pub fn initRoutes(server: httplib.Server) void {
+    _ = server
         .Get("/bagend/auth/signin", signInGet)
+        .Post("/bagend/auth/signin", signInPost)
         .Get("/bagend/auth", indexGet);
 }
 
@@ -22,7 +24,10 @@ fn signInGet(_: httplib.Request, res: httplib.Response) void {
     var tmpl = mustache.Mustache.init(arena.allocator(), signInTmpl);
     defer tmpl.deinit();
 
-    const rendered = tmpl.Render();
+    var data = mustache.Data.init(arena.allocator());
+    defer data.deinit();
+
+    const rendered = tmpl.Render(data);
 
     res.set_content(rendered, "text/html");
 }

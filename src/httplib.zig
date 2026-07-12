@@ -49,6 +49,24 @@ pub const Server = struct {
         return self;
     }
 
+    pub fn Put(self: Server, pattern: [:0]const u8, comptime handler: Handler) Server {
+        c.server_put(self.handle, pattern.ptr, struct {
+            fn call(req: ?*const c.Request, res: ?*c.Response) callconv(.c) void {
+                handler(.{ .handle = req.? }, .{ .handle = res.? });
+            }
+        }.call);
+        return self;
+    }
+
+    pub fn Delete(self: Server, pattern: [:0]const u8, comptime handler: Handler) Server {
+        c.server_delete(self.handle, pattern.ptr, struct {
+            fn call(req: ?*const c.Request, res: ?*c.Response) callconv(.c) void {
+                handler(.{ .handle = req.? }, .{ .handle = res.? });
+            }
+        }.call);
+        return self;
+    }
+
     pub fn listen(self: Server, host: [:0]const u8, port: c_int) void {
         c.server_listen(self.handle, host.ptr, port);
     }

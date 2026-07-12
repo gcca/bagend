@@ -14,7 +14,9 @@ pub fn main(init: std.process.Init) !void {
     var server = httplib.Server.init();
     defer server.deinit();
 
-    bagend.handling.auth.routes.initRoutes(server)
+    bagend.handling.auth.routes.initRoutes(server);
+    bagend.handling.home.routes.initRoutes(server);
+    server
         .Get("/", index)
         .Get("/bagend/healthcheck", healthcheck)
         .listen("0.0.0.0", 8000);

@@ -22,22 +22,36 @@ void server_destroy(Server* server) {
   delete server;
 }
 
-void server_get(Server* server, const char* pattern, Handler handler) {
-  server->server.Get(
-      pattern, [handler](const httplib::Request& req, httplib::Response& res) {
-        Request shimreq{req};
-        Response shimres{res};
-        handler(&shimreq, &shimres);
-      });
+void server_get(Server* s, const char* p, Handler h) {
+  s->server.Get(p, [h](const httplib::Request& rq, httplib::Response& rs) {
+    Request srq{rq};
+    Response srs{rs};
+    h(&srq, &srs);
+  });
 }
 
-void server_post(Server* server, const char* pattern, Handler handler) {
-  server->server.Post(
-      pattern, [handler](const httplib::Request& req, httplib::Response& res) {
-        Request shimreq{req};
-        Response shimres{res};
-        handler(&shimreq, &shimres);
-      });
+void server_post(Server* s, const char* p, Handler h) {
+  s->server.Post(p, [h](const httplib::Request& rq, httplib::Response& rs) {
+    Request srq{rq};
+    Response srs{rs};
+    h(&srq, &srs);
+  });
+}
+
+void server_put(Server* s, const char* p, Handler h) {
+  s->server.Put(p, [h](const httplib::Request& rq, httplib::Response& rs) {
+    Request srq{rq};
+    Response srs{rs};
+    h(&srq, &srs);
+  });
+}
+
+void server_delete(Server* s, const char* p, Handler h) {
+  s->server.Delete(p, [h](const httplib::Request& rq, httplib::Response& rs) {
+    Request srq{rq};
+    Response srs{rs};
+    h(&srq, &srs);
+  });
 }
 
 void server_listen(Server* server, const char* host, const int port) {

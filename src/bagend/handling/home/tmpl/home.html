@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="keywords" content="bagend, portal">
+        <meta name="description" content="Sistema de gestión">
+        <title>Inicio - Portal</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='8' fill='%232563eb'/%3E%3Cpath d='M24 8 38 16v16L24 40 10 32V16z' fill='none' stroke='white' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M18 24l5 5 8-10' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" type="image/svg+xml">
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css"
+              rel="stylesheet"
+              type="text/css" />
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </head>
+    <body class="min-h-screen bg-base-200">
+        <div class="navbar bg-base-100 shadow-sm px-6">
+            <div class="flex-1">
+                <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 shadow"
+                     aria-label="Portal">
+                    <svg viewBox="0 0 48 48"
+                         class="h-6 w-6 text-white"
+                         fill="none"
+                         xmlns="http://www.w3.org/2000/svg"
+                         aria-hidden="true">
+                        <path d="M24 6 39 14.5V32L24 42 9 32V14.5L24 6Z"
+                              stroke="currentColor"
+                              stroke-width="4"
+                              stroke-linejoin="round" />
+                        <path d="M18 23.5 23 28.5 31 19.5"
+                              stroke="currentColor"
+                              stroke-width="4"
+                              stroke-linecap="round"
+                              stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <span class="text-lg font-semibold ml-3">Portal</span>
+            </div>
+        </div>
+        <main class="max-w-6xl mx-auto p-6">
+            <h1 class="text-2xl font-bold mb-1">Aplicaciones</h1>
+            <p class="text-base-content/60 mb-6">Accesos disponibles para tu cuenta.</p>
+            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {{{ cards }}}
+            </div>
+        </main>
+    </body>
+</html>
