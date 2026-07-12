@@ -38,17 +38,87 @@ pub const Mustache = struct {
         self.allocator.rawFree(self.mem, self.memalign, @returnAddress());
     }
 
-    pub fn Render(self: *Mustache) [:0]u8 {
+    pub fn Render(self: *Mustache, data: Data) [:0]u8 {
         var ctx: RenderCtx = .{ .allocator = self.allocator, .buf = .empty };
-        c.mustache_render(self.mustache, RenderHandler, &ctx);
+        c.mustache_render(self.mustache, data.data, RenderHandler, &ctx);
         return ctx.buf.toOwnedSliceSentinel(self.allocator, 0) catch @panic("OOM");
     }
 };
 
-test "render" {
-    var m = Mustache.Init(std.testing.allocator, "hello {{! comment }}world");
-    defer m.Deinit();
-    const rendered = m.Render();
+pub const Data = struct {
+    data: *c.Data,
+    allocator: std.mem.Allocator,
+    mem: []u8,
+    memalign: std.mem.Alignment,
+
+    pub fn init(allocator: std.mem.Allocator) Data {
+        const memlen: usize = c.DataSize;
+        const memalign = std.mem.Alignment.fromByteUnits(c.DataAlign);
+        const memptr = allocator.rawAlloc(memlen, memalign, @returnAddress()) orelse @panic("OOM");
+        const mem = memptr[0..memlen];
+        return .{
+            .data = c.data_init(mem.ptr).?,
+            .allocator = allocator,
+            .mem = mem,
+            .memalign = memalign,
+        };
+    }
+
+    pub fn deinit(self: Data) void {
+        c.data_deinit(self.data);
+        self.allocator.rawFree(self.mem, self.memalign, @returnAddress());
+    }
+
+    pub fn setString(self: Data, s: [:0]const u8, v: [:0]const u8) void {
+        c.data_setstring(self.data, s.ptr, v.ptr);
+    }
+
+    pub fn setBool(self: Data, s: [:0]const u8, v: bool) void {
+        c.data_setbool(self.data, s.ptr, v);
+    }
+};
+
+test "data single string" {
+    var m = Mustache.init(std.testing.allocator, "hello {{ test }}world");
+    defer m.deinit();
+
+    var d = Data.init(std.testing.allocator);
+    defer d.deinit();
+
+    d.setString("test", "outer");
+
+    const rendered = m.Render(d);
+
+    defer std.testing.allocator.free(rendered);
+    try std.testing.expectEqualStrings("hello outerworld", rendered);
+}
+
+test "data single boolean:true" {
+    var m = Mustache.init(std.testing.allocator, "hello {{# test }}world{{/ test }}");
+    defer m.deinit();
+
+    var d = Data.init(std.testing.allocator);
+    defer d.deinit();
+
+    d.setBool("test", true);
+
+    const rendered = m.Render(d);
+
     defer std.testing.allocator.free(rendered);
     try std.testing.expectEqualStrings("hello world", rendered);
+}
+
+test "data single boolean:false" {
+    var m = Mustache.init(std.testing.allocator, "hello {{# test }}world{{/ test }}");
+    defer m.deinit();
+
+    var d = Data.init(std.testing.allocator);
+    defer d.deinit();
+
+    d.setBool("test", false);
+
+    const rendered = m.Render(d);
+
+    defer std.testing.allocator.free(rendered);
+    try std.testing.expectEqualStrings("hello ", rendered);
 }

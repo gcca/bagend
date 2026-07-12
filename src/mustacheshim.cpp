@@ -6,6 +6,10 @@ struct Mustache {
   kainjow::mustache::mustache mustache;
 };
 
+struct Data {
+  kainjow::mustache::data data;
+};
+
 size_t MustacheSize = sizeof(Mustache);
 size_t MustacheAlign = alignof(Mustache);
 
@@ -17,8 +21,26 @@ void mustache_deinit(Mustache* mustache) {
   mustache->~Mustache();
 }
 
-void mustache_render(Mustache* mustache, RenderHandler h, void* p) {
+void mustache_render(Mustache* mustache, Data* data, RenderHandler h, void* p) {
   mustache->mustache.render(
-      kainjow::mustache::data{},
-      [h, p](const std::string& chk) { h(p, chk.data(), chk.size()); });
+      data->data, [h, p](const std::string& c) { h(p, c.data(), c.size()); });
+}
+
+size_t DataSize = sizeof(Data);
+size_t DataAlign = alignof(Data);
+
+Data* data_init(void* m) {
+  return new (m) Data{};
+}
+
+void data_deinit(Data* data) {
+  data->~Data();
+}
+
+void data_setstring(Data* d, const char* s, const char* v) {
+  d->data.set(s, v);
+}
+
+void data_setbool(Data* d, const char* s, bool v) {
+  d->data.set(s, v);
 }
