@@ -38,13 +38,27 @@ inline fn buildMustache(b: *std.Build, target: std.Build.ResolvedTarget, optimiz
     return mustache;
 }
 
-inline fn buildBagEnd(b: *std.Build, target: std.Build.ResolvedTarget, httplib: *std.Build.Module, mustache: *std.Build.Module) *std.Build.Module {
+inline fn buildSqlite3(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Module {
+    const sqlite3 = b.addModule("sqlite3", .{
+        .root_source_file = b.path("src/sqlite3.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    sqlite3.link_libc = true;
+    sqlite3.linkSystemLibrary("sqlite3", .{});
+
+    return sqlite3;
+}
+
+inline fn buildBagEnd(b: *std.Build, target: std.Build.ResolvedTarget, httplib: *std.Build.Module, mustache: *std.Build.Module, sqlite3: *std.Build.Module) *std.Build.Module {
     const bagend = b.addModule("bagend", .{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .imports = &.{
             .{ .name = "httplib", .module = httplib },
             .{ .name = "mustache", .module = mustache },
+            .{ .name = "sqlite3", .module = sqlite3 },
         },
     });
 
@@ -57,7 +71,8 @@ pub fn build(b: *std.Build) void {
 
     const httplib = buildHttplib(b, target, optimize);
     const mustache = buildMustache(b, target, optimize);
-    const bagend = buildBagEnd(b, target, httplib, mustache);
+    const sqlite3 = buildSqlite3(b, target, optimize);
+    const bagend = buildBagEnd(b, target, httplib, mustache, sqlite3);
 
     const exe = b.addExecutable(.{
         .name = "bagend",
@@ -68,6 +83,7 @@ pub fn build(b: *std.Build) void {
             .imports = &.{
                 .{ .name = "bagend", .module = bagend },
                 .{ .name = "httplib", .module = httplib },
+                .{ .name = "sqlite3", .module = sqlite3 },
             },
         }),
     });
@@ -106,8 +122,15 @@ pub fn build(b: *std.Build) void {
 
     const run_mustache_tests = b.addRunArtifact(mustache_tests);
 
+    const sqlite3_tests = b.addTest(.{
+        .root_module = sqlite3,
+    });
+
+    const run_sqlite3_tests = b.addRunArtifact(sqlite3_tests);
+
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
     test_step.dependOn(&run_exe_tests.step);
     test_step.dependOn(&run_mustache_tests.step);
+    test_step.dependOn(&run_sqlite3_tests.step);
 }

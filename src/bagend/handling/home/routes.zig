@@ -2,76 +2,61 @@ const std = @import("std");
 
 const httplib = @import("httplib");
 const mustache = @import("mustache");
+const sqlite3 = @import("sqlite3");
 
 const homeTmpl = @embedFile("tmpl/home.html");
 const cardTmpl = @embedFile("tmpl/card.html");
+const databasePath = "db/bagend.db";
+const appsSql =
+    \\SELECT name, title, description, icon, caption, link
+    \\FROM home_app
+    \\ORDER BY rowid
+;
 
 pub fn initRoutes(server: httplib.Server) void {
     _ = server
         .Get("/bagend/home", homeGet);
 }
 
-const App = struct {
-    name: [:0]const u8,
-    title: [:0]const u8,
-    description: [:0]const u8,
-    icon: [:0]const u8,
-    caption: [:0]const u8,
-    link: [:0]const u8,
-};
-
-const apps = [_]App{
-    .{
-        .name = "tickets",
-        .title = "Tickets",
-        .description = "Gestión de solicitudes y soporte interno.",
-        .icon = "fa-solid fa-ticket",
-        .caption = "Abrir",
-        .link = "#",
-    },
-    .{
-        .name = "tablero",
-        .title = "Tablero",
-        .description = "Indicadores comerciales y operativos.",
-        .icon = "fa-solid fa-chart-line",
-        .caption = "Ver tablero",
-        .link = "#",
-    },
-    .{
-        .name = "asistencia",
-        .title = "Asistencia",
-        .description = "Control de asistencia del personal.",
-        .icon = "fa-solid fa-clipboard-check",
-        .caption = "Registrar",
-        .link = "#",
-    },
-    .{
-        .name = "reportes",
-        .title = "Reportes",
-        .description = "Reportes de ventas y ocupación.",
-        .icon = "fa-solid fa-file-lines",
-        .caption = "Consultar",
-        .link = "#",
-    },
-};
-
 fn homeGet(_: httplib.Request, res: httplib.Response) void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
 
+    var db = sqlite3.Sqlite3.initRO(databasePath) catch {
+        res.set_content("failed to open database", "text/plain");
+        return;
+    };
+    defer db.deinit();
+
+    var stmt = db.stmt(appsSql) catch {
+        std.debug.print("failed to prepare home apps query: {s}\n", .{db.errmsg()});
+        res.set_content("failed to load applications", "text/plain");
+        return;
+    };
+    defer stmt.deinit();
+
     var card = mustache.Mustache.init(allocator, cardTmpl);
     defer card.deinit();
 
     var cardsHtml: std.ArrayList(u8) = .empty;
-    for (apps) |app| {
+    while (true) {
+        switch (stmt.step() catch {
+            std.debug.print("failed to step home apps query: {s}\n", .{stmt.errmsg()});
+            res.set_content("failed to load applications", "text/plain");
+            return;
+        }) {
+            .row => {},
+            .done => break,
+        }
+
         var data = mustache.Data.init(allocator);
         defer data.deinit();
-        data.setString("title", app.title);
-        data.setString("description", app.description);
-        data.setString("icon", app.icon);
-        data.setString("caption", app.caption);
-        data.setString("link", app.link);
+        data.setString("title", stmt.columnText(1));
+        data.setString("description", stmt.columnText(2));
+        data.setString("icon", stmt.columnText(3));
+        data.setString("caption", stmt.columnText(4));
+        data.setString("link", stmt.columnText(5));
 
         const rendered = card.Render(data);
         cardsHtml.appendSlice(allocator, rendered) catch @panic("OOM");

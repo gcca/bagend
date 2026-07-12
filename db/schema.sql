@@ -23,7 +23,10 @@ END;
 CREATE TABLE home_app (
   name TEXT NOT NULL PRIMARY KEY,
   title TEXT NOT NULL,
-  description TEXT NOT NULL
+  description TEXT NOT NULL,
+  icon TEXT NOT NULL,
+  caption TEXT NOT NULL,
+  link TEXT NOT NULL
 );
 CREATE TABLE home_userapp (
   username TEXT NOT NULL REFERENCES auth_user(username) ON DELETE CASCADE,
