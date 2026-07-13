@@ -1,0 +1,16 @@
+services:
+  urmom:
+    image: ghcr.io/gcca/urmom:latest
+    environment:
+      TZ: UTC
+      DB_URL: /app/data/urmom.db
+      PORT: "50051"
+      LOAD_SAMPLE_DATA: "1"
+    ports:
+      - "50051:50051"
+    volumes:
+      - urmom-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  urmom-data:

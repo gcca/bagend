@@ -51,7 +51,26 @@ inline fn buildSqlite3(b: *std.Build, target: std.Build.ResolvedTarget, optimize
     return sqlite3;
 }
 
-inline fn buildBagEnd(b: *std.Build, target: std.Build.ResolvedTarget, httplib: *std.Build.Module, mustache: *std.Build.Module, sqlite3: *std.Build.Module) *std.Build.Module {
+inline fn buildGrpc(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Module {
+    const grpc = b.addModule("grpc", .{
+        .root_source_file = b.path("src/grpc.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    grpc.addIncludePath(b.path("src"));
+    grpc.addCSourceFile(.{
+        .file = b.path("src/grpcshim.cpp"),
+        .flags = &.{ "-std=c++20", "-Wno-error=deprecated-declarations", "-Wno-deprecated-declarations" },
+        .language = .cpp,
+    });
+    grpc.link_libcpp = true;
+    grpc.linkSystemLibrary("grpc++", .{ .use_pkg_config = .force });
+
+    return grpc;
+}
+
+inline fn buildBagEnd(b: *std.Build, target: std.Build.ResolvedTarget, httplib: *std.Build.Module, mustache: *std.Build.Module, sqlite3: *std.Build.Module, protobuf: *std.Build.Module, grpc: *std.Build.Module) *std.Build.Module {
     const bagend = b.addModule("bagend", .{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
@@ -59,13 +78,15 @@ inline fn buildBagEnd(b: *std.Build, target: std.Build.ResolvedTarget, httplib: 
             .{ .name = "httplib", .module = httplib },
             .{ .name = "mustache", .module = mustache },
             .{ .name = "sqlite3", .module = sqlite3 },
+            .{ .name = "protobuf", .module = protobuf },
+            .{ .name = "grpc", .module = grpc },
         },
     });
 
     return bagend;
 }
 
-inline fn buildProtobuf(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+inline fn buildProtobuf(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Module {
     const protobuf_dep = b.dependency("protobuf", .{
         .target = target,
         .optimize = optimize,
@@ -104,7 +125,8 @@ pub fn build(b: *std.Build) void {
     const mustache = buildMustache(b, target, optimize);
     const sqlite3 = buildSqlite3(b, target, optimize);
     const protobuf = buildProtobuf(b, target, optimize);
-    const bagend = buildBagEnd(b, target, httplib, mustache, sqlite3);
+    const grpc = buildGrpc(b, target, optimize);
+    const bagend = buildBagEnd(b, target, httplib, mustache, sqlite3, protobuf, grpc);
 
     const exe = b.addExecutable(.{
         .name = "bagend",
