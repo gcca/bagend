@@ -1,5 +1,47 @@
 const std = @import("std");
 
+fn cppFlags(comptime standard: []const u8, target: std.Build.ResolvedTarget) []const []const u8 {
+    _ = target;
+    return &.{standard};
+}
+
+fn cppFlagsNoDeprecatedErrors(comptime standard: []const u8, target: std.Build.ResolvedTarget) []const []const u8 {
+    _ = target;
+    return &.{ standard, "-Wno-error=deprecated-declarations", "-Wno-deprecated-declarations" };
+}
+
+fn linkCpp(module: *std.Build.Module, target: std.Build.ResolvedTarget) void {
+    _ = target;
+    module.link_libcpp = true;
+}
+
+fn linuxLibstdcxxPath() []const u8 {
+    return "/usr/lib/libstdc++.so.6";
+}
+
+fn addGrpcShim(b: *std.Build, grpc: *std.Build.Module, target: std.Build.ResolvedTarget) void {
+    if (target.result.os.tag == .linux) {
+        const compile = b.addSystemCommand(&.{
+            "sh",
+            "-c",
+            "g++ -std=c++20 -Wno-error=deprecated-declarations -Wno-deprecated-declarations $(pkg-config --cflags grpc++) -I src -c src/grpcshim.cpp -o \"$1\"",
+            "compile-grpcshim",
+        });
+        compile.addFileInput(b.path("src/grpcshim.cpp"));
+        compile.addFileInput(b.path("src/grpcshim.hpp"));
+
+        grpc.addObjectFile(compile.addOutputFileArg("grpcshim.o"));
+        grpc.addObjectFile(.{ .cwd_relative = linuxLibstdcxxPath() });
+    } else {
+        grpc.addCSourceFile(.{
+            .file = b.path("src/grpcshim.cpp"),
+            .flags = cppFlagsNoDeprecatedErrors("-std=c++20", target),
+            .language = .cpp,
+        });
+        linkCpp(grpc, target);
+    }
+}
+
 inline fn buildHttplib(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Module {
     const httplib = b.addModule("httplib", .{
         .root_source_file = b.path("src/httplib.zig"),
@@ -11,10 +53,10 @@ inline fn buildHttplib(b: *std.Build, target: std.Build.ResolvedTarget, optimize
     httplib.addIncludePath(b.path("src"));
     httplib.addCSourceFile(.{
         .file = b.path("src/httplibshim.cpp"),
-        .flags = &.{"-std=c++23"},
+        .flags = cppFlags("-std=c++23", target),
         .language = .cpp,
     });
-    httplib.link_libcpp = true;
+    linkCpp(httplib, target);
 
     return httplib;
 }
@@ -30,10 +72,10 @@ inline fn buildMustache(b: *std.Build, target: std.Build.ResolvedTarget, optimiz
     mustache.addIncludePath(b.path("src"));
     mustache.addCSourceFile(.{
         .file = b.path("src/mustacheshim.cpp"),
-        .flags = &.{"-std=c++23"},
+        .flags = cppFlags("-std=c++23", target),
         .language = .cpp,
     });
-    mustache.link_libcpp = true;
+    linkCpp(mustache, target);
 
     return mustache;
 }
@@ -59,12 +101,7 @@ inline fn buildGrpc(b: *std.Build, target: std.Build.ResolvedTarget, optimize: s
     });
 
     grpc.addIncludePath(b.path("src"));
-    grpc.addCSourceFile(.{
-        .file = b.path("src/grpcshim.cpp"),
-        .flags = &.{ "-std=c++20", "-Wno-error=deprecated-declarations", "-Wno-deprecated-declarations" },
-        .language = .cpp,
-    });
-    grpc.link_libcpp = true;
+    addGrpcShim(b, grpc, target);
     grpc.linkSystemLibrary("grpc++", .{ .use_pkg_config = .force });
 
     return grpc;
