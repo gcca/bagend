@@ -3,7 +3,12 @@
     .version = "0.0.0",
     .fingerprint = 0x9e074164102bd9c,
     .minimum_zig_version = "0.16.0",
-    .dependencies = .{},
+    .dependencies = .{
+        .protobuf = .{
+            .url = "git+https://github.com/Arwalk/zig-protobuf?ref=v5.0.0#1f6cb06156b3ff4f52f98bc14f829c0b8393a6fc",
+            .hash = "protobuf-5.0.0-0e82avKUKAAVwTWJzTIEZ14Fu0zC11_lElR8tE6H__y1",
+        },
+    },
     .paths = .{
         "build.zig",
         "build.zig.zon",

@@ -65,6 +65,15 @@ inline fn buildBagEnd(b: *std.Build, target: std.Build.ResolvedTarget, httplib: 
     return bagend;
 }
 
+inline fn buildProtobuf(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const protobuf_dep = b.dependency("protobuf", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    return protobuf_dep.module("protobuf");
+}
+
 inline fn installArtifacts(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
     const pull_appsinfo = b.addExecutable(.{
         .name = "bagend-pull_appsinfo",
@@ -94,6 +103,7 @@ pub fn build(b: *std.Build) void {
     const httplib = buildHttplib(b, target, optimize);
     const mustache = buildMustache(b, target, optimize);
     const sqlite3 = buildSqlite3(b, target, optimize);
+    const protobuf = buildProtobuf(b, target, optimize);
     const bagend = buildBagEnd(b, target, httplib, mustache, sqlite3);
 
     const exe = b.addExecutable(.{
@@ -106,6 +116,7 @@ pub fn build(b: *std.Build) void {
                 .{ .name = "bagend", .module = bagend },
                 .{ .name = "httplib", .module = httplib },
                 .{ .name = "sqlite3", .module = sqlite3 },
+                .{ .name = "protobuf", .module = protobuf },
             },
         }),
     });
