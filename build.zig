@@ -65,6 +65,28 @@ inline fn buildBagEnd(b: *std.Build, target: std.Build.ResolvedTarget, httplib: 
     return bagend;
 }
 
+inline fn installArtifacts(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) void {
+    const pull_appsinfo = b.addExecutable(.{
+        .name = "bagend-pull_appsinfo",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("cmd/bagend-pull_appsinfo.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    b.installArtifact(pull_appsinfo);
+
+    const pull_appsinfo_step = b.step("pull_appsinfo", "Run bagend-pull_appsinfo");
+
+    const pull_appsinfo_cmd = b.addRunArtifact(pull_appsinfo);
+    pull_appsinfo_step.dependOn(&pull_appsinfo_cmd.step);
+
+    if (b.args) |args| {
+        pull_appsinfo_cmd.addArgs(args);
+    }
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -89,6 +111,7 @@ pub fn build(b: *std.Build) void {
     });
 
     b.installArtifact(exe);
+    installArtifacts(b, target, optimize);
 
     const check_step = b.step("check", "Check if it compiles");
     check_step.dependOn(&exe.step);
